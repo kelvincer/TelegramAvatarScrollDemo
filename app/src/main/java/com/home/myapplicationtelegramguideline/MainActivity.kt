@@ -3,26 +3,22 @@ package com.home.myapplicationtelegramguideline
 import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlin.math.abs
-
 
 class MainActivity : AppCompatActivity() {
 
-    val TAG = MainActivity::class.java.simpleName
+    val s = MainActivity::class.java.simpleName
     lateinit var rvMain: RecyclerView
-    lateinit var viewQ: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        rvMain = findViewById<RecyclerView>(R.id.rvMain)
+        rvMain = findViewById(R.id.rvMain)
         rvMain.adapter = AnotherAdapter(this)
         rvMain.addItemDecoration(
             DividerItemDecoration(
@@ -31,7 +27,6 @@ class MainActivity : AppCompatActivity() {
             )
         )
         rvMain.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            var percentFirst = 0
             var lastPosition = 0
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -42,58 +37,39 @@ class MainActivity : AppCompatActivity() {
                 val rvRect = Rect()
                 rvMain.getGlobalVisibleRect(rvRect)
                 for (i in firstPosition until lastPosition) {
-                    val rowRect = Rect()
-                    layoutManager.findViewByPosition(i)!!.getGlobalVisibleRect(rowRect)
-                    var percentFirst: Int
-                    percentFirst = if (rowRect.bottom >= rvRect.bottom) {
-                        val visibleHeightFirst: Int = rvRect.bottom - rowRect.top
-                        visibleHeightFirst * 100 / layoutManager.findViewByPosition(i)!!.height
-                    } else {
-                        val visibleHeightFirst: Int = rowRect.bottom - rvRect.top
-                        visibleHeightFirst * 100 / layoutManager.findViewByPosition(i)!!.height
-                    }
-                    if (percentFirst > 100) percentFirst = 100
                     val motionLay = layoutManager.findViewByPosition(i)
                         ?.findViewById<MotionLayout>(R.id.motion_layout)
-                    motionLay?.progress = abs(1f - 1) //percentFirst / 100f
+                    motionLay?.progress = 0f
                 }
 
                 val rowRect = Rect()
                 layoutManager.findViewByPosition(lastPosition)!!.getGlobalVisibleRect(rowRect)
-                var percentFirst: Float
-                percentFirst = if (rowRect.bottom >= rvRect.bottom) {
+                var percentLast: Float = if (rowRect.bottom >= rvRect.bottom) {
                     val visibleHeightFirst: Int = rvRect.bottom - rowRect.top
                     visibleHeightFirst / layoutManager.findViewByPosition(lastPosition)!!.height.toFloat()
                 } else {
                     val visibleHeightFirst: Int = rowRect.bottom - rvRect.top
                     visibleHeightFirst / layoutManager.findViewByPosition(lastPosition)!!.height.toFloat()
                 }
-                if (percentFirst > 1) percentFirst = 1f
+                if (percentLast > 1) percentLast = 1f
+
                 val motionLay = layoutManager.findViewByPosition(lastPosition)
                     ?.findViewById<MotionLayout>(R.id.motion_layout)
 
-                val value = abs(1f - percentFirst)
-                val couple = 1 - dpToPx(this@MainActivity, 50) / (layoutManager.findViewByPosition(
-                    lastPosition
-                )!!.height.toFloat() - dpToPx(this@MainActivity, 10))
-                if (dy < 0) {
-                    // Scrolling down
-                    if (value <= couple)
-                        motionLay?.progress = value
-                    else
-                        motionLay?.progress = couple
-                } else {
-                    // Scrolling up
-                    if (value >= couple)
-                        motionLay?.progress = abs(couple)
-                    else {
-                        motionLay?.progress = value
-                    }
-                }
+                val factor =
+                    dpToPx(this@MainActivity, 20 + 30) / layoutManager.findViewByPosition(
+                        lastPosition
+                    )!!.height.toFloat()
+
+                if (percentLast < factor)
+                    motionLay?.progress  = 1f
+                else
+                    motionLay?.progress  =
+                        -1 / (1 - factor) * percentLast + (1 + factor / (1 - factor))//1.2998f//-1.2998f*percentLast + 1.2998f
 
                 Log.d(
-                    TAG,
-                    "onScrolled progress: ${motionLay?.progress}, percent: $percentFirst, couple: $couple," +
+                    s,
+                    "onScrolled progress: ${motionLay?.progress}, percentLast $percentLast," +
                             " position: $lastPosition, height: ${
                                 layoutManager.findViewByPosition(
                                     lastPosition
