@@ -77,23 +77,6 @@ class MainActivity : AppCompatActivity() {
                             }"
                 )
             }
-
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                when (newState) {
-                    RecyclerView.SCROLL_STATE_IDLE -> {
-                        println("The RecyclerView is not scrolling")
-                    }
-                    RecyclerView.SCROLL_STATE_DRAGGING -> {
-                        println("Scrolling now")
-                        rvMain.invalidate()
-                    }
-                    RecyclerView.SCROLL_STATE_SETTLING -> {
-                        println("Scroll Settling")
-
-                    }
-                }
-            }
         })
     }
 }
